@@ -14,7 +14,6 @@ const program = new Command();
 
 program.usage('[options]')
     .description('Scrapes the message board of TV show "백반기행"')
-    .option('-d, --debug', 'output debug messages')
     .parse(process.argv)
     ;
 
@@ -62,6 +61,7 @@ const config = {
         $('#content p').each((_idx, elem) => {
             body += $(elem).text() + '\n';
         });
+        body = body.replace(/ /g, ' '); // replace non-breaking space with normal space
 
         return { title, date, body };
     }

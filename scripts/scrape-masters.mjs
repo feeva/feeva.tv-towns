@@ -14,7 +14,6 @@ const program = new Command();
 
 program.usage('[options]')
     .description('Scrapes the message board of TV show "생활의 달인"')
-    .option('-d, --debug', 'output debug messages')
     .parse(process.argv)
     ;
 
@@ -62,6 +61,7 @@ const config = {
         $('p:not(:has(div, p)), div:not(:has(p, div))').each(function(_idx, elem) {
             body += $(elem).text() + '\n';
         });
+        body = body.replace(/ /g, ' '); // replace non-breaking space with normal space
 
         return { title, date, body };
     }
