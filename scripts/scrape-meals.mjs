@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * This script scrapes the message board of the TV Chosun show '백반기행' and saves the data to 'src/assets/posts.json'.
+ * This script scrapes the message board of the TV Chosun show '백반기행'
  */
 
 import * as cheerio from 'cheerio';
@@ -61,7 +61,8 @@ const config = {
         const date = $('.bbs_detail .w_info .date').text().replace(/\./g, '-');
         let body = htmlToText($('#content').html())
                 .trim().replace(/ /g, ' ') // replace non-breaking space with normal space
-                .replace(/\n{3,}/g, '\n\n') // replace multiple newlines with two newlines
+                .replace(/( *\n){2}(\S)/g, '\n$2')
+                .replace(/( *\n){2,}/g, '\n\n') // replace multiple newlines with two newlines
 
         return { title, date, body };
     }

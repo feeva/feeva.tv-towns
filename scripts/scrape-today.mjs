@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * This script scrapes the message board of the SBS TV show '생활의 달인'
+ * This script scrapes the message board of the SBS TV show 'Live Today'
  */
 
 import { Command } from 'commander';
@@ -13,7 +13,7 @@ import { scrape } from './scrape.mjs';
 const program = new Command();
 
 program.usage('[options]')
-    .description('Scrapes the message board of TV show "생활의 달인"')
+    .description('Scrapes the message board of TV show "생방송 투데이"')
     .parse(process.argv)
     ;
 
@@ -22,14 +22,14 @@ async function fetchGet(url) {
     return await resp.json();
 }
 
-const START_URL = 'http://api.board.sbs.co.kr/bbs/V2.0/basic/board/lists?limit=1&action_type=json&board_code=lifemaster_bd01&offset=0';
-const URL_PATTERN = 'http://api.board.sbs.co.kr/bbs/V2.0/basic/board/detail/{}?action_type=json&board_code=lifemaster_bd01';
+const START_URL = 'https://api.board.sbs.co.kr/bbs/V2.0/basic/board/lists?offset=0&limit=16&action_type=json&board_code=today3_bd01';
+const URL_PATTERN = 'https://api.board.sbs.co.kr/bbs/V2.0/basic/board/detail/{}?action_type=json&board_code=today3_bd01';
 const htmlToText = compile();
 
 let savedItem;
 
 const config = {
-    DATASET_KEY: 'masters',
+    DATASET_KEY: 'today',
 
     async nextItemKey() {
         if (savedItem) {

@@ -8,6 +8,7 @@ import 'leaflet.markercluster';
 
 import mastersData from './data/masters.json';
 import mealsData from './data/meals.json';
+import todayData from './data/today.json';
 import { formatDate } from './utils';
 
 let currLocation;
@@ -34,9 +35,7 @@ export default {
       maxZoom: 18,
       minZoom: 7,
       maxBounds: [[31, 122], [40, 134]],
-      maxBoundsViscosity: .8,
       zoomControl: false,
-      zoomSnap: 1
     });
     L.tileLayer(TILE_URLS.BASE, {
       attribution: VWORLD_ATTRIBUTION,
@@ -49,15 +48,16 @@ export default {
     }
 
     const markers = L.markerClusterGroup({
-      maxClusterRadius: 40,
+      maxClusterRadius: 50,
     });
 
-    const datasetName = ['생활의 달인', '백반기행'];
+    const datasetName = ['생활의 달인', '백반기행', '생방송 투데이'];
     const datasetIcons = [
       { html: '달인', iconSize: [36, 20], popupAnchor: [0, -10] },
       { html: '백반', iconSize: [36, 20], popupAnchor: [0, -10] },
+      { html: '투데이', iconSize: [48, 20], popupAnchor: [0, -10] },
     ]
-    const datasets = [mastersData, mealsData];
+    const datasets = [mastersData, mealsData, todayData];
 
     const popup = L.popup({
       maxWidth: 310,
@@ -84,13 +84,14 @@ export default {
 
     datasets.forEach((dataset, idx) => {
       Object.values(dataset).forEach(item => {
-        const yearDiff = (now - new Date(item.date.slice(0, 10))) / 1000 / 60 / 60 / 24 / 365;
+        const d = new Date(item.date.slice(0, 10));
+        const yearDiff = Math.round((now - d.getTime()) / 1000 / 60 / 60 / 24 / 365);
 
         item.locations.forEach(loc => {
           const marker = L.marker([loc.lat, loc.lng], {
             icon: L.divIcon({ ...datasetIcons[idx], className: `badge badge-${idx} year-${yearDiff}`}),
-            title: loc.address,
-            opacity: 5 / (yearDiff + 5),
+            title: d.getFullYear() + '년, ' + loc.address,
+            opacity: 8 / (yearDiff + 8),
           });
           marker.__data = { dataset: idx, item, address: loc.address };
           marker.bindPopup(popup).on('popupopen', scrollToHighlight)
@@ -122,12 +123,13 @@ export default {
 .leaflet-marker-icon.badge { padding: 0.35em; font-size: 12px; font-weight: normal; }
 .leaflet-marker-icon.badge-0 { background-color: #0086cd; }
 .leaflet-marker-icon.badge-1 { background-color: #f54643; }
+.leaflet-marker-icon.badge-2 { background-color: #0086cd; }
 
-.leaflet-marker-icon.filter-9 { filter: grayscale(5%); }
-.leaflet-marker-icon.filter-8 { filter: grayscale(10%); }
-.leaflet-marker-icon.filter-7 { filter: grayscale(15%); }
-.leaflet-marker-icon.filter-6 { filter: grayscale(20%); }
-.leaflet-marker-icon.filter-5 { filter: grayscale(25%); }
-.leaflet-marker-icon.filter-4 { filter: grayscale(30%); }
-.leaflet-marker-icon.filter-3 { filter: grayscale(40%); }
+.leaflet-marker-icon.year-1 { filter: grayscale(5%); }
+.leaflet-marker-icon.year-2 { filter: grayscale(10%); }
+.leaflet-marker-icon.year-3 { filter: grayscale(18%); }
+.leaflet-marker-icon.year-4 { filter: grayscale(30%); }
+.leaflet-marker-icon.year-5 { filter: grayscale(45%); }
+.leaflet-marker-icon.year-6 { filter: grayscale(65%); }
+.leaflet-marker-icon.year-7 { filter: grayscale(90%); }
 </style>
