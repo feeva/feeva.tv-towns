@@ -1,5 +1,7 @@
 import fs from 'fs';
 
+const SCRAPE_YEAR = 7;
+
 /**
  * @param {object} config 
  * @param {string} config.DATASET_KEY
@@ -19,6 +21,7 @@ async function scrape(config) {
     let index = 0;
     let itemKey;
     let changed = true;
+    const year = new Date().getFullYear();
 
     console.log('Starting scraping...');
 
@@ -37,6 +40,11 @@ async function scrape(config) {
         
         console.log(`[${index++}] ${itemKey}`);
         const item = await config.fetchItem(itemKey);
+
+        if (year - item.date.slice(0, 4) > SCRAPE_YEAR) {
+            console.log(`[${index++}] ${itemKey} is too old. Stop scraping.`);
+            break;
+        }
         
         posts[itemKey] = item;
         changed = true;

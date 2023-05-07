@@ -49,19 +49,13 @@ export default {
     }
 
     const markers = L.markerClusterGroup({
-      maxClusterRadius: 50,
+      maxClusterRadius: 40,
     });
-
-    // const popup = L.popup({
-    //     maxWidth: 310,
-    //     maxHeight: 250
-    // })
-    // .setContent(contentFunc);
 
     const datasetName = ['생활의 달인', '백반기행'];
     const datasetIcons = [
-      L.divIcon({ className: 'badge bg-primary', html: '달인', iconSize: [36, 20], popupAnchor: [0, -10] }),
-      L.divIcon({ className: 'badge bg-danger', html: '백반', iconSize: [36, 20], popupAnchor: [0, -10] }),
+      { html: '달인', iconSize: [36, 20], popupAnchor: [0, -10] },
+      { html: '백반', iconSize: [36, 20], popupAnchor: [0, -10] },
     ]
     const datasets = [mastersData, mealsData];
 
@@ -82,17 +76,21 @@ export default {
     function scrollToHighlight() {
       const el = document.querySelector('.highlight');
       if (el) {
-        el.scrollIntoView(false);
-        el.parentElement.scrollTop += 120;
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
 
+    const now = Date.now()
+
     datasets.forEach((dataset, idx) => {
       Object.values(dataset).forEach(item => {
+        const yearDiff = (now - new Date(item.date.slice(0, 10))) / 1000 / 60 / 60 / 24 / 365;
+
         item.locations.forEach(loc => {
           const marker = L.marker([loc.lat, loc.lng], {
-            icon: datasetIcons[idx],
+            icon: L.divIcon({ ...datasetIcons[idx], className: `badge badge-${idx} year-${yearDiff}`}),
             title: loc.address,
+            opacity: 5 / (yearDiff + 5),
           });
           marker.__data = { dataset: idx, item, address: loc.address };
           marker.bindPopup(popup).on('popupopen', scrollToHighlight)
@@ -122,4 +120,14 @@ export default {
 }
 
 .leaflet-marker-icon.badge { padding: 0.35em; font-size: 12px; font-weight: normal; }
+.leaflet-marker-icon.badge-0 { background-color: #0086cd; }
+.leaflet-marker-icon.badge-1 { background-color: #f54643; }
+
+.leaflet-marker-icon.filter-9 { filter: grayscale(5%); }
+.leaflet-marker-icon.filter-8 { filter: grayscale(10%); }
+.leaflet-marker-icon.filter-7 { filter: grayscale(15%); }
+.leaflet-marker-icon.filter-6 { filter: grayscale(20%); }
+.leaflet-marker-icon.filter-5 { filter: grayscale(25%); }
+.leaflet-marker-icon.filter-4 { filter: grayscale(30%); }
+.leaflet-marker-icon.filter-3 { filter: grayscale(40%); }
 </style>

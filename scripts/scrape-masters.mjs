@@ -4,10 +4,9 @@
  * This script scrapes the message board of the SBS TV show '생활의 달인' and saves the data to 'src/assets/posts.json'.
  */
 
-import * as cheerio from 'cheerio';
 import { Command } from 'commander';
-import fetch from 'node-fetch';
 import { compile } from 'html-to-text';
+import fetch from 'node-fetch';
 
 import { scrape } from './scrape.mjs';
 
@@ -58,8 +57,7 @@ const config = {
         const date = result.REG_DATE;
         const content = result.CONTENT;
 
-        const $ = cheerio.load(content);
-        let body = htmlToText($('#content').html())
+        let body = htmlToText(content)
                 .trim().replace(/ /g, ' ') // replace non-breaking space with normal space
                 .replace(/\n{3,}/g, '\n\n') // replace multiple newlines with two newlines
 
