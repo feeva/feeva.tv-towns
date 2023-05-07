@@ -12,11 +12,16 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "bootstrap": "^5.2.3",
+    "html-to-text": "^9.0.5",
+    "leaflet": "^1.9.3",
+    "leaflet.markercluster": "^1.5.3",
     "pinia": "^2.0.35",
     "vue": "^3.2.47"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.2.0",
+    "@types/leaflet": "^1.9.3",
     "@vitejs/plugin-vue": "^4.2.1",
     "@vue/eslint-config-prettier": "^7.1.0",
     "@vue/test-utils": "^2.3.2",
@@ -27,6 +32,7 @@
     "jsdom": "^22.0.0",
     "node-fetch": "^3.3.1",
     "prettier": "^2.8.8",
+    "sass": "^1.62.1",
     "vite": "^4.3.4",
     "vitest": "^0.31.0"
   }

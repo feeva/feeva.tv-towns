@@ -18,7 +18,7 @@ async function scrape(config) {
 
     let index = 0;
     let itemKey;
-    let changed = false;
+    let changed = true;
 
     console.log('Starting scraping...');
 
@@ -44,7 +44,7 @@ async function scrape(config) {
 
     if (changed) {
         console.log('Saving data...');
-        fs.writeFileSync(DATA_FILE, JSON.stringify(posts, null, 2) + '\n');
+        fs.writeFileSync(DATA_FILE, JSON.stringify(posts) + '\n');
     }
 }
 

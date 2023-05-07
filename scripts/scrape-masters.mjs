@@ -7,6 +7,7 @@
 import * as cheerio from 'cheerio';
 import { Command } from 'commander';
 import fetch from 'node-fetch';
+import { compile } from 'html-to-text';
 
 import { scrape } from './scrape.mjs';
 
@@ -24,6 +25,7 @@ async function fetchGet(url) {
 
 const START_URL = 'http://api.board.sbs.co.kr/bbs/V2.0/basic/board/lists?limit=1&action_type=json&board_code=lifemaster_bd01&offset=0';
 const URL_PATTERN = 'http://api.board.sbs.co.kr/bbs/V2.0/basic/board/detail/{}?action_type=json&board_code=lifemaster_bd01';
+const htmlToText = compile();
 
 let savedItem;
 
@@ -57,11 +59,9 @@ const config = {
         const content = result.CONTENT;
 
         const $ = cheerio.load(content);
-        let body = '';
-        $('p:not(:has(div, p)), div:not(:has(p, div))').each(function(_idx, elem) {
-            body += $(elem).text() + '\n';
-        });
-        body = body.replace(/ /g, ' '); // replace non-breaking space with normal space
+        let body = htmlToText($('#content').html())
+                .trim().replace(/ /g, ' ') // replace non-breaking space with normal space
+                .replace(/\n{3,}/g, '\n\n') // replace multiple newlines with two newlines
 
         return { title, date, body };
     }

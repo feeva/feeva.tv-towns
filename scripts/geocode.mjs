@@ -71,7 +71,7 @@ async function geocodeFile(file) {
         console.error(e);
     }
 
-    fs.writeFileSync(file, JSON.stringify(posts, null, 2));
+    fs.writeFileSync(file, JSON.stringify(posts));
 }
 
 if (program.args.length)

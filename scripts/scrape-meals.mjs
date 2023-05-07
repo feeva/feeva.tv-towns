@@ -7,6 +7,7 @@
 import * as cheerio from 'cheerio';
 import { Command } from 'commander';
 import fetch from 'node-fetch';
+import { compile } from 'html-to-text';
 
 import { scrape } from './scrape.mjs';
 
@@ -24,11 +25,12 @@ async function fetchGet(url) {
 
 const START_URL = 'http://broadcast.tvchosun.com/broadcast/program/3/C201900033/bbs/8663/C201900033_7/list.cstv';
 const URL_PATTERN = 'http://broadcast.tvchosun.com/broadcast/program/3/C201900033/bbs/8663/C201900033_7/{}.cstv?search_text=';
+const htmlToText = compile();
 
 let $saved;
 
 const config = {
-    DATASET_KEY: 'meal',
+    DATASET_KEY: 'meals',
 
     async nextItemKey() {
         if (!$saved) {
@@ -57,11 +59,9 @@ const config = {
 
         const title = $('#viewTitle').contents().eq(0).text().trim();
         const date = $('.bbs_detail .w_info .date').text().replace(/\./g, '-');
-        let body = '';
-        $('#content p').each((_idx, elem) => {
-            body += $(elem).text() + '\n';
-        });
-        body = body.replace(/ /g, ' '); // replace non-breaking space with normal space
+        let body = htmlToText($('#content').html())
+                .trim().replace(/ /g, ' ') // replace non-breaking space with normal space
+                .replace(/\n{3,}/g, '\n\n') // replace multiple newlines with two newlines
 
         return { title, date, body };
     }

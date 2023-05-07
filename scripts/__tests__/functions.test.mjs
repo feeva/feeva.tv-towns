@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { findAddresses } from "../scripts/functions";
+import { findAddresses } from "../functions";
 
 describe('findAddresses', () => {
     it.each([
