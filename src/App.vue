@@ -1,20 +1,44 @@
 <template>
   <div ref="map" id="map"></div>
+
+  <div v-if="loading" id="page-loader" class="page-loader">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-4">데이터 로딩 중...</p>
+  </div>
+  
+  <div id="divInfoTouch"></div>
+  <div id="divInfo">
+    <div class="animated swing"><h1>TV 동네 탐방</h1></div>
+    <div class="desc">
+      <p>TV 방송 맛집, 멋집 지도로 찾기 (<span id="spanUpdated">2023-05-07</span>)</p>
+    </div>
+    <div class="finePrint">
+      <p>이 페이지는 개인적인 TV 방송 시청자로서
+          제작한 웹페이지이며 사용된 데이터는
+          각각의 원 소유주에게 원래의 권한이 있습니다.</p>
+      <p style="text-align: center;">(c) 2017-2023, <a href="http://feeva.github.io/" target="_blank">이동련</a></p>
+    </div>
+  </div>
+
 </template>
 
 <script>
 import 'leaflet';
 import 'leaflet.markercluster';
 
-import mastersData from './data/masters.json';
-import mealsData from './data/meals.json';
-import todayData from './data/today.json';
-import tonightData from './data/tonight.json';
 import { formatDate } from './utils';
 
 let currLocation;
 
 export default {
+  data() {
+    return {
+      loading: false,
+    };
+  },
+
   created() {
     window.navigator.geolocation.getCurrentPosition(pos => {
       currLocation = [pos.coords.latitude, pos.coords.longitude];
@@ -24,7 +48,15 @@ export default {
     });
   },
 
-  mounted() {
+  async mounted() {
+    const hide = () => {
+      document.querySelectorAll('#divInfoTouch, #divInfo').forEach(el => el.style.display = 'none');
+    }
+    document.querySelectorAll('#divInfoTouch, #divInfo').forEach(el => {
+      el.addEventListener('mousedown', hide);
+      el.addEventListener('touchdown', hide);
+    });
+
     const TILE_URLS = {
       BASE: 'https://xdworld.vworld.kr/2d/Base/service/{z}/{x}/{y}.png',
     };
@@ -52,11 +84,20 @@ export default {
       maxClusterRadius: 50,
     });
 
+    this.loading = true;
+    const arr = await Promise.all([
+      import('./data/masters.json'),
+      import('./data/meals.json'),
+      import('./data/today.json'),
+      import('./data/tonight.json'),
+    ]);
+    this.loading = false;
+
     const datasets = [
-      { data: mastersData, name: '생활의 달인', icon: { html: '달인', iconSize: [36, 20], popupAnchor: [0, -10] }, },
-      { data: mealsData, name: '백반기행', icon: { html: '백반', iconSize: [36, 20], popupAnchor: [0, -10] }, },
-      { data: todayData, name: '생방송 투데이', icon: { html: '투데이', iconSize: [48, 20], popupAnchor: [0, -10] }, },
-      { data: tonightData, name: '생방송 오늘 저녁', icon: { html: '저녁', iconSize: [36, 20], popupAnchor: [0, -10] }, },
+      { data: arr[0].default, name: '생활의 달인', icon: { html: '달인', iconSize: [36, 20], popupAnchor: [0, -10] }, },
+      { data: arr[1].default, name: '백반기행', icon: { html: '백반', iconSize: [36, 20], popupAnchor: [0, -10] }, },
+      { data: arr[2].default, name: '생방송 투데이', icon: { html: '투데이', iconSize: [48, 20], popupAnchor: [0, -10] }, },
+      { data: arr[3].default, name: '생방송 오늘 저녁', icon: { html: '저녁', iconSize: [36, 20], popupAnchor: [0, -10] }, },
     ];
 
     const popup = L.popup({
@@ -74,10 +115,12 @@ export default {
     });
 
     function scrollToHighlight() {
-      const el = document.querySelector('.highlight');
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      setTimeout(() => {
+        const el = document.querySelector('.highlight');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
     }
 
     const now = Date.now()
@@ -100,6 +143,7 @@ export default {
       })
       this.map.addLayer(markers);
     });
+
   },
 }
 </script>
@@ -114,7 +158,7 @@ export default {
 }
 
 .popup__body {
-  max-height: 200px; overflow-y: auto;
+  max-height: 200px; overflow-y: auto; word-break: break-all;
 }
 .highlight {
   background-color: #ff0;
@@ -133,4 +177,48 @@ export default {
 .leaflet-marker-icon.year-5 { filter: grayscale(45%); }
 .leaflet-marker-icon.year-6 { filter: grayscale(65%); }
 .leaflet-marker-icon.year-7 { filter: grayscale(90%); }
+
+#page-loader {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  z-index: 900;
+}
+#page-loader .spinner-border { width: 4rem; height: 4rem; border-width: .4em; }
+
+#divInfo {
+    position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+    width: 400px; max-width: 95%; height: 220px;
+    margin: auto; padding: 1em; box-sizing: border-box;
+    background-color: white; border: solid 1px #ccc; border-radius: 5px;
+    box-shadow: #555 5px 5px 20px; z-index: 999;
+}
+#divInfo h1 {
+    margin: 0;
+    color: #f35626; font-weight: 700; font-size: 3.6em;
+    background-image: -webkit-linear-gradient(0deg,#f35626,#feab3a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: hue 8s infinite linear;
+}
+@keyframes hue {
+  from {
+    filter: hue-rotate(0deg);
+  }
+
+  to {
+    filter: hue-rotate(-360deg);
+  }
+}
+#divInfo .finePrint { font-size: 9pt; color: #aaa; }
+#divInfoTouch { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 999; background-color: white; opacity: 0; }
 </style>
