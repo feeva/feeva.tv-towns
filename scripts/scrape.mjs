@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-const SCRAPE_YEAR = 7;
+const SCRAPE_YEAR = 5;
 
 /**
  * @param {object} config 
@@ -38,7 +38,6 @@ async function scrape(config) {
             break;
         }
         
-        console.log(`[${index++}] ${itemKey}`);
         const item = await config.fetchItem(itemKey);
 
         if (year - item.date.slice(0, 4) > SCRAPE_YEAR) {
@@ -46,6 +45,7 @@ async function scrape(config) {
             break;
         }
         
+        console.log(`[${index++}] ${itemKey} - ${item.title}`);
         posts[itemKey] = item;
         changed = true;
     }

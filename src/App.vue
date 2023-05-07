@@ -9,6 +9,7 @@ import 'leaflet.markercluster';
 import mastersData from './data/masters.json';
 import mealsData from './data/meals.json';
 import todayData from './data/today.json';
+import tonightData from './data/tonight.json';
 import { formatDate } from './utils';
 
 let currLocation;
@@ -51,13 +52,12 @@ export default {
       maxClusterRadius: 50,
     });
 
-    const datasetName = ['생활의 달인', '백반기행', '생방송 투데이'];
-    const datasetIcons = [
-      { html: '달인', iconSize: [36, 20], popupAnchor: [0, -10] },
-      { html: '백반', iconSize: [36, 20], popupAnchor: [0, -10] },
-      { html: '투데이', iconSize: [48, 20], popupAnchor: [0, -10] },
-    ]
-    const datasets = [mastersData, mealsData, todayData];
+    const datasets = [
+      { data: mastersData, name: '생활의 달인', icon: { html: '달인', iconSize: [36, 20], popupAnchor: [0, -10] }, },
+      { data: mealsData, name: '백반기행', icon: { html: '백반', iconSize: [36, 20], popupAnchor: [0, -10] }, },
+      { data: todayData, name: '생방송 투데이', icon: { html: '투데이', iconSize: [48, 20], popupAnchor: [0, -10] }, },
+      { data: tonightData, name: '생방송 오늘 저녁', icon: { html: '저녁', iconSize: [36, 20], popupAnchor: [0, -10] }, },
+    ];
 
     const popup = L.popup({
       maxWidth: 310,
@@ -68,7 +68,7 @@ export default {
         .replace(address, `<span class="highlight">${address}</span>`);
 
       return `
-        <div><h3 class="h5">${datasetName[dataset]} ${formatDate(item.date)}</h3></div>
+        <div><h3 class="h5">${datasets[dataset].name} ${formatDate(item.date)}</h3></div>
         <div class="popup__body">${body}</div>
       `
     });
@@ -83,13 +83,13 @@ export default {
     const now = Date.now()
 
     datasets.forEach((dataset, idx) => {
-      Object.values(dataset).forEach(item => {
+      Object.values(dataset.data).forEach(item => {
         const d = new Date(item.date.slice(0, 10));
         const yearDiff = Math.round((now - d.getTime()) / 1000 / 60 / 60 / 24 / 365);
 
         item.locations.forEach(loc => {
           const marker = L.marker([loc.lat, loc.lng], {
-            icon: L.divIcon({ ...datasetIcons[idx], className: `badge badge-${idx} year-${yearDiff}`}),
+            icon: L.divIcon({ ...datasets[idx].icon, className: `badge badge-${idx} year-${yearDiff}`}),
             title: d.getFullYear() + '년, ' + loc.address,
             opacity: 8 / (yearDiff + 8),
           });
@@ -124,6 +124,7 @@ export default {
 .leaflet-marker-icon.badge-0 { background-color: #0086cd; }
 .leaflet-marker-icon.badge-1 { background-color: #f54643; }
 .leaflet-marker-icon.badge-2 { background-color: #0086cd; }
+.leaflet-marker-icon.badge-3 { background-color: #040707; }
 
 .leaflet-marker-icon.year-1 { filter: grayscale(5%); }
 .leaflet-marker-icon.year-2 { filter: grayscale(10%); }

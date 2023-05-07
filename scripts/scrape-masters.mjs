@@ -14,7 +14,7 @@ const program = new Command();
 
 program.usage('[options]')
     .description('Scrapes the message board of TV show "생활의 달인"')
-    .parse(process.argv)
+    .parse()
     ;
 
 async function fetchGet(url) {

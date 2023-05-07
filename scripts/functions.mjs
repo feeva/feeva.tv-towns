@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-const ADMIN_FILE = new URL(import.meta.url + `/../../src/data/administrative.txt`);
+const ADMIN_FILE = new URL(import.meta.url + `/../administrative.txt`);
 const content = fs.readFileSync(ADMIN_FILE, 'utf8');
 const adminLines = content.split(/\r?\n/g);
 const sido = [], sigungu = [];
