@@ -50,7 +50,8 @@ async function scrape(config) {
         }
         
         const item = await config.fetchItem(itemKey);
-        item.body = item.body.trim()
+        item.body = item.body
+                        .replace(item.title, '').trim() // remove title from body
                         .replace(/\xa0/g, ' ') // replace non-breaking space with normal space
                         .replace(/( *\n){2}(\S)/g, '\n$2')
                         .replace(/( *\n){2,}/g, '\n\n') // replace multiple newlines with two newlines

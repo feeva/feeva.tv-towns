@@ -104,12 +104,16 @@ export default {
       });
 
       body = body
+        .replace(item.title, '').trim()
         .replace(/\n/g, '<br>')
         .replace(address, `<span class="highlight">${address}</span>`);
 
       return `
         <div><h3 class="h5">${datasets[dataset].name} ${formatDate(item.date)}</h3></div>
-        <div class="popup__body">${body}</div>
+        <div class="popup__body">
+          <p><strong>${item.title}</strong></p>
+          ${body}
+        </div>
       `
     });
 
@@ -143,9 +147,8 @@ export default {
     Object.keys(posts).forEach(key => {
       const item = posts[key];
       const datasetId = key.split('-')[0];
-
-      const d = new Date(item.date.slice(0, 10));
-      const yearDiff = Math.round((now - d.getTime()) / 1000 / 60 / 60 / 24 / 365);
+      const date = item.date.slice(0, 10);
+      const yearDiff = Math.round((now - new Date(date).getTime()) / 1000 / 60 / 60 / 24 / 365);
       const addresses = findAddresses(item.body);
 
       addresses.forEach(address => {
@@ -154,8 +157,8 @@ export default {
 
         const marker = L.marker([loc.lat, loc.lng], {
           icon: L.divIcon({ ...datasets[datasetId].icon, className: `badge badge-${datasetId} year-${yearDiff}`}),
-          title: d.getFullYear() + '년, ' + loc.address,
-          opacity: 8 / (yearDiff + 8),
+          title: `${date} ${datasets[datasetId].name}, ${address}`,
+          opacity: 7 / (yearDiff + 7),
         });
         marker.__data = { dataset: datasetId, item, address, locations };
         marker.bindPopup(popup).on('popupopen', scrollToHighlight)
@@ -190,13 +193,13 @@ export default {
 .leaflet-marker-icon.badge-today { background-color: #0086cd; }
 .leaflet-marker-icon.badge-tonight { background-color: #040707; }
 
+.leaflet-marker-icon[class^="year-"] { filter: grayscale(100%); }
+.leaflet-marker-icon.year-0 { filter: grayscale(0); }
 .leaflet-marker-icon.year-1 { filter: grayscale(5%); }
-.leaflet-marker-icon.year-2 { filter: grayscale(10%); }
-.leaflet-marker-icon.year-3 { filter: grayscale(18%); }
-.leaflet-marker-icon.year-4 { filter: grayscale(30%); }
-.leaflet-marker-icon.year-5 { filter: grayscale(45%); }
-.leaflet-marker-icon.year-6 { filter: grayscale(65%); }
-.leaflet-marker-icon.year-7 { filter: grayscale(90%); }
+.leaflet-marker-icon.year-2 { filter: grayscale(15%); }
+.leaflet-marker-icon.year-3 { filter: grayscale(30%); }
+.leaflet-marker-icon.year-4 { filter: grayscale(50%); }
+.leaflet-marker-icon.year-5 { filter: grayscale(75%); }
 
 #page-loader {
   display: flex;
