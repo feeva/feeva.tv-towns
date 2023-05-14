@@ -12,8 +12,9 @@ import { scrape } from './scrape.mjs';
 
 const program = new Command();
 
-program.usage('[options]')
+program.usage('[options] [filename]')
     .description('Scrapes the message board of TV show "생방송 투데이"')
+    .option('-f --force', 'Force scraping all items')
     .parse()
     ;
 
@@ -55,15 +56,14 @@ const config = {
         savedItem = result;
         const title = result.TITLE;
         const date = result.REG_DATE;
-        const content = result.CONTENT;
-
-        let body = htmlToText(content)
-                .trim().replace(/ /g, ' ') // replace non-breaking space with normal space
-                .replace(/( *\n){2}(\S)/g, '\n$2')
-                .replace(/( *\n){2,}/g, '\n\n') // replace multiple newlines with two newlines
+        const body = htmlToText(result.CONTENT);
 
         return { title, date, body };
-    }
+    },
+
+    force: program.opts().force,
+
+    filename: program.args[0],
 }
 
 scrape(config);

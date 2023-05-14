@@ -1,6 +1,7 @@
 import fs from 'fs';
 
-const SCRAPE_YEAR = 5;
+// Only scrape posts from the last 5 years
+const START_TIME = new Date().getTime() - 1000 * 60 * 60 * 24 * 365 * 5;
 
 /**
  * @param {object} config 
@@ -10,18 +11,26 @@ const SCRAPE_YEAR = 5;
  */
 async function scrape(config) {
     // load existing data
-    const DATA_FILE = new URL(import.meta.url + `/../../src/data/${config.DATASET_KEY}.json`);
+    const DATA_FILE = config.filename ?? new URL(import.meta.url + '/../../src/data/posts.json');
     let posts = {};
 
     if (fs.existsSync(DATA_FILE)) {
         const data = fs.readFileSync(DATA_FILE, 'utf8');
         posts = JSON.parse(data);
+
+        // remove old posts
+        Object.keys(posts).forEach(key => {
+            const time = new Date(posts[key].date).getTime();
+            if (time < START_TIME) {
+                delete posts[key];
+                changed = true;
+            }
+        });
     }
 
     let index = 0;
     let itemKey;
     let changed = true;
-    const year = new Date().getFullYear();
 
     console.log('Starting scraping...');
 
@@ -33,20 +42,28 @@ async function scrape(config) {
             break;
         }
 
-        if (Object.prototype.hasOwnProperty.call(posts, itemKey)) {
-            console.log(`[${index++}] ${itemKey} already exists. Stop scraping.`);
+        const key = `${config.DATASET_KEY}-${itemKey}`;
+
+        if (!config.force && posts[key]) {
+            console.log(`[${index++}] ${itemKey} already exists`);
             break;
         }
         
         const item = await config.fetchItem(itemKey);
+        item.body = item.body.trim()
+                        .replace(/\xa0/g, ' ') // replace non-breaking space with normal space
+                        .replace(/( *\n){2}(\S)/g, '\n$2')
+                        .replace(/( *\n){2,}/g, '\n\n') // replace multiple newlines with two newlines
 
-        if (year - item.date.slice(0, 4) > SCRAPE_YEAR) {
+        const time = new Date(item.date).getTime();
+
+        if (time < START_TIME) {
             console.log(`[${index++}] ${itemKey} is too old. Stop scraping.`);
             break;
         }
         
         console.log(`[${index++}] ${itemKey} - ${item.title}`);
-        posts[itemKey] = item;
+        posts[key] = item;
         changed = true;
     }
 

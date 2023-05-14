@@ -8,6 +8,7 @@ const program = new Command();
 program
     .argument('<code>', 'Kakao API authorization code')
     .argument('<file>', 'JSON file to process')
+    .argument('<output>', 'Output file to write')
     .option('-f, --force', 'Overwrite existing locations')
     .description('Search for Korean addresses in a data file and geocode them')
     .parse()
@@ -37,43 +38,45 @@ async function geocode(address) {
 }
 
 
-async function geocodeFile(file) {
-    const text = fs.readFileSync(file, 'utf8');
+async function geocodeFile(file, output) {
+    let text = fs.readFileSync(file, 'utf8');
     const posts = JSON.parse(text);
-
     const arr = Object.values(posts);
+    let locations = {};
+
+    if (fs.existsSync(output)) {
+        text = fs.readFileSync(output, 'utf8');
+        locations = JSON.parse(text);
+    }
     
     try {
         for (let i = 0; i < arr.length; ++i) {
             const item = arr[i];
-            if (!program.opts().force && item.locations) continue;
-
-            const locations = [];
             const addresses = findAddresses(item.body);
             
             console.log(`Processing ${i + 1}/${arr.length}: ${item.title}`)
             console.log(addresses);
 
             for (const address of addresses) {
+                if (locations[address])
+                    continue;
+
                 const loc = await geocode(address);
                 if (loc) {
-                    locations.push({
-                        address,
+                    locations[address] = {
                         lat: loc.y,
                         lng: loc.x,
-                    });
+                    };
                 }
             }
-
-            item.locations = locations;
         };
     } catch (e) {
         console.error(e);
     }
 
-    fs.writeFileSync(file, JSON.stringify(posts));
+    fs.writeFileSync(output, JSON.stringify(locations));
 }
 
 if (program.args.length)
-    geocodeFile(program.args[1]);
+    geocodeFile(program.args[1], program.args[2]);
 

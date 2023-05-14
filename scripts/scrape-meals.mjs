@@ -13,8 +13,9 @@ import { scrape } from './scrape.mjs';
 
 const program = new Command();
 
-program.usage('[options]')
+program.usage('[options] [filename]')
     .description('Scrapes the message board of TV show "백반기행"')
+    .option('-f --force', 'Force scraping all items')
     .parse()
     ;
 
@@ -59,13 +60,14 @@ const config = {
 
         const title = $('#viewTitle').contents().eq(0).text().trim();
         const date = $('.bbs_detail .w_info .date').text().replace(/\./g, '-');
-        let body = htmlToText($('#content').html())
-                .trim().replace(/ /g, ' ') // replace non-breaking space with normal space
-                .replace(/( *\n){2}(\S)/g, '\n$2')
-                .replace(/( *\n){2,}/g, '\n\n') // replace multiple newlines with two newlines
+        const body = htmlToText($('#content').html());
 
         return { title, date, body };
-    }
+    },
+
+    force: program.opts().force,
+
+    filename: program.args[0],
 }
 
 scrape(config);

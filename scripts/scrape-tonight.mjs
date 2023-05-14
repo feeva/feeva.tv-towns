@@ -13,8 +13,9 @@ import { scrape } from './scrape.mjs';
 
 const program = new Command();
 
-program.usage('[options]')
+program.usage('[options] [filename]')
     .description('Scrapes the message board of TV show "생방송 투데이"')
+    .option('-f --force', 'Force scraping all items')
     .parse()
     ;
 
@@ -68,15 +69,14 @@ const config = {
 
         const title = $('.board_table.type_view').eq(0).find('td.title p span').text().trim();
         const date = $('.board_table.type_view').eq(0).find('.id_info .info_date span').text().replace(/\./g, '-');
-        const content = $('#divContents td').html();
-
-        let body = htmlToText(content)
-                .trim().replace(/ /g, ' ') // replace non-breaking space with normal space
-                .replace(/( *\n){2}(\S)/g, '\n$2')
-                .replace(/( *\n){2,}/g, '\n\n') // replace multiple newlines with two newlines
+        const body = htmlToText($('#divContents td').html());
 
         return { title, date, body };
-    }
+    },
+
+    force: program.opts().force,
+
+    filename: program.args[0],
 }
 
 scrape(config);

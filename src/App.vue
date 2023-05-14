@@ -29,6 +29,7 @@ import 'leaflet';
 import 'leaflet.markercluster';
 
 import { formatDate } from './utils';
+import { findAddresses } from '../scripts/functions.mjs';
 
 let currLocation;
 
@@ -49,6 +50,8 @@ export default {
   },
 
   async mounted() {
+
+    // initialize events for info div
     const hide = () => {
       document.querySelectorAll('#divInfoTouch, #divInfo').forEach(el => el.style.display = 'none');
     }
@@ -57,6 +60,7 @@ export default {
       el.addEventListener('touchdown', hide);
     });
 
+    // initialize map
     const TILE_URLS = {
       BASE: 'https://xdworld.vworld.kr/2d/Base/service/{z}/{x}/{y}.png',
     };
@@ -80,31 +84,26 @@ export default {
       this.map.fitBounds([[32.5, 125], [39, 130.5]]);
     }
 
-    const markers = L.markerClusterGroup({
-      maxClusterRadius: 50,
-    });
-
-    this.loading = true;
-    const arr = await Promise.all([
-      import('./data/masters.json'),
-      import('./data/meals.json'),
-      import('./data/today.json'),
-      import('./data/tonight.json'),
-    ]);
-    this.loading = false;
-
-    const datasets = [
-      { data: arr[0].default, name: '생활의 달인', icon: { html: '달인', iconSize: [36, 20], popupAnchor: [0, -10] }, },
-      { data: arr[1].default, name: '백반기행', icon: { html: '백반', iconSize: [36, 20], popupAnchor: [0, -10] }, },
-      { data: arr[2].default, name: '생방송 투데이', icon: { html: '투데이', iconSize: [48, 20], popupAnchor: [0, -10] }, },
-      { data: arr[3].default, name: '생방송 오늘 저녁', icon: { html: '저녁', iconSize: [36, 20], popupAnchor: [0, -10] }, },
-    ];
+    // initialize markers
+    const datasets = {
+      masters: { name: '생활의 달인', icon: { html: '달인', iconSize: [36, 20], popupAnchor: [0, -10] }, },
+      meals: { name: '백반기행', icon: { html: '백반', iconSize: [36, 20], popupAnchor: [0, -10] }, },
+      today: { name: '생방송 투데이', icon: { html: '투데이', iconSize: [48, 20], popupAnchor: [0, -10] }, },
+      tonight: { name: '생방송 오늘 저녁', icon: { html: '저녁', iconSize: [36, 20], popupAnchor: [0, -10] }, },
+    };
 
     const popup = L.popup({
       maxWidth: 310,
     }).setContent(marker => {
-      const { dataset, item, address } = marker.__data;
-      const body = item.body
+      const { dataset, item, address, locations } = marker.__data;
+      let body = item.body;
+      const addresses = findAddresses(body);
+      addresses.forEach(a => {
+        if (locations[a] && a !== address)
+          body = body.replace(a, `<a href="#move" data-loc="${locations[a].lat},${locations[a].lng}">${a}</a>`);
+      });
+
+      body = body
         .replace(/\n/g, '<br>')
         .replace(address, `<span class="highlight">${address}</span>`);
 
@@ -114,35 +113,56 @@ export default {
       `
     });
 
+    document.addEventListener('click', e => {
+      if (e.target.matches('a[data-loc]')) {
+        e.preventDefault();
+        const latLng = e.target.dataset.loc.split(',');
+        this.map.flyTo(latLng);
+      }
+    });
+
     function scrollToHighlight() {
       setTimeout(() => {
         const el = document.querySelector('.highlight');
         if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.scrollIntoView({ block: 'center' });
         }
       });
     }
 
+    const markers = L.markerClusterGroup({ maxClusterRadius: zoom => -7 * zoom + 156 });
     const now = Date.now()
 
-    datasets.forEach((dataset, idx) => {
-      Object.values(dataset.data).forEach(item => {
-        const d = new Date(item.date.slice(0, 10));
-        const yearDiff = Math.round((now - d.getTime()) / 1000 / 60 / 60 / 24 / 365);
+    // load data
+    this.loading = true;
+    const arr = await Promise.all([import('./data/posts.json'), import('./data/locations.json')]);
+    const posts = arr[0].default;
+    const locations = arr[1].default;
+    this.loading = false;
 
-        item.locations.forEach(loc => {
-          const marker = L.marker([loc.lat, loc.lng], {
-            icon: L.divIcon({ ...datasets[idx].icon, className: `badge badge-${idx} year-${yearDiff}`}),
-            title: d.getFullYear() + '년, ' + loc.address,
-            opacity: 8 / (yearDiff + 8),
-          });
-          marker.__data = { dataset: idx, item, address: loc.address };
-          marker.bindPopup(popup).on('popupopen', scrollToHighlight)
-          markers.addLayer(marker);
+    Object.keys(posts).forEach(key => {
+      const item = posts[key];
+      const datasetId = key.split('-')[0];
+
+      const d = new Date(item.date.slice(0, 10));
+      const yearDiff = Math.round((now - d.getTime()) / 1000 / 60 / 60 / 24 / 365);
+      const addresses = findAddresses(item.body);
+
+      addresses.forEach(address => {
+        const loc = locations[address];
+        if (!loc) return;
+
+        const marker = L.marker([loc.lat, loc.lng], {
+          icon: L.divIcon({ ...datasets[datasetId].icon, className: `badge badge-${datasetId} year-${yearDiff}`}),
+          title: d.getFullYear() + '년, ' + loc.address,
+          opacity: 8 / (yearDiff + 8),
         });
-      })
-      this.map.addLayer(markers);
+        marker.__data = { dataset: datasetId, item, address, locations };
+        marker.bindPopup(popup).on('popupopen', scrollToHighlight)
+        markers.addLayer(marker);
+      });
     });
+    this.map.addLayer(markers);
 
   },
 }
@@ -165,10 +185,10 @@ export default {
 }
 
 .leaflet-marker-icon.badge { padding: 0.35em; font-size: 12px; font-weight: normal; }
-.leaflet-marker-icon.badge-0 { background-color: #0086cd; }
-.leaflet-marker-icon.badge-1 { background-color: #f54643; }
-.leaflet-marker-icon.badge-2 { background-color: #0086cd; }
-.leaflet-marker-icon.badge-3 { background-color: #040707; }
+.leaflet-marker-icon.badge-masters { background-color: #0086cd; }
+.leaflet-marker-icon.badge-meals { background-color: #f54643; }
+.leaflet-marker-icon.badge-today { background-color: #0086cd; }
+.leaflet-marker-icon.badge-tonight { background-color: #040707; }
 
 .leaflet-marker-icon.year-1 { filter: grayscale(5%); }
 .leaflet-marker-icon.year-2 { filter: grayscale(10%); }
@@ -202,7 +222,7 @@ export default {
     box-shadow: #555 5px 5px 20px; z-index: 999;
 }
 #divInfo h1 {
-    margin: 0;
+    margin: 0; text-align: center;
     color: #f35626; font-weight: 700; font-size: 3.6em;
     background-image: -webkit-linear-gradient(0deg,#f35626,#feab3a);
     -webkit-background-clip: text;
@@ -210,6 +230,7 @@ export default {
     -webkit-text-fill-color: transparent;
     animation: hue 8s infinite linear;
 }
+#divInfo .desc { text-align: center; }
 @keyframes hue {
   from {
     filter: hue-rotate(0deg);
