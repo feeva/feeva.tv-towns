@@ -1,7 +1,14 @@
 import fs from 'fs';
+import { compile } from 'html-to-text';
 
 // Only scrape posts from the last 5 years
 const START_TIME = new Date().getTime() - 1000 * 60 * 60 * 24 * 365 * 5;
+const htmlToText = compile({
+    selectors: [
+        { selector: 'p', options: { leadingLineBreaks: 1, trailingLineBreaks: 1 } },
+        { selector: 'a', options: { hideLinkHrefIfSameAsText: true } },
+    ],
+});
 
 /**
  * @param {object} config 
@@ -50,11 +57,10 @@ async function scrape(config) {
         }
         
         const item = await config.fetchItem(itemKey);
-        item.body = item.body
-                        .replace(item.title, '').trim() // remove title from body
-                        .replace(/\xa0/g, ' ') // replace non-breaking space with normal space
-                        .replace(/( *\n){2}(\S)/g, '\n$2')
-                        .replace(/( *\n){2,}/g, '\n\n') // replace multiple newlines with two newlines
+        item.body = htmlToText(item.body)
+                    .replace(item.title, '').trim() // remove title from body
+                    .replace(/\xa0/g, ' ') // replace non-breaking space with normal space
+                    .replace(/( *\n){2,}/g, '\n\n') // replace multiple newlines with two newlines
 
         const time = new Date(item.date).getTime();
 

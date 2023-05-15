@@ -6,7 +6,6 @@
 
 import * as cheerio from 'cheerio';
 import { Command } from 'commander';
-import { compile } from 'html-to-text';
 import fetch from 'node-fetch';
 
 import { scrape } from './scrape.mjs';
@@ -34,7 +33,6 @@ async function fetchGet(url) {
 
 const LIST_URL = 'https://imbbs.imbc.com/v2/list.aspx?bid=evening_info&page=';
 const READ_URL = 'https://imbbs.imbc.com/v2/view.aspx?bid=evening_info&list_id={0}&page={1}';
-const htmlToText = compile();
 
 let $saved;
 let itemKey;
@@ -69,7 +67,7 @@ const config = {
 
         const title = $('.board_table.type_view').eq(0).find('td.title p span').text().trim();
         const date = $('.board_table.type_view').eq(0).find('.id_info .info_date span').text().replace(/\./g, '-');
-        const body = htmlToText($('#divContents td').html());
+        const body = $('#divContents td').html();
 
         return { title, date, body };
     },

@@ -7,7 +7,6 @@
 import * as cheerio from 'cheerio';
 import { Command } from 'commander';
 import fetch from 'node-fetch';
-import { compile } from 'html-to-text';
 
 import { scrape } from './scrape.mjs';
 
@@ -26,7 +25,6 @@ async function fetchGet(url) {
 
 const START_URL = 'http://broadcast.tvchosun.com/broadcast/program/3/C201900033/bbs/8663/C201900033_7/list.cstv';
 const URL_PATTERN = 'http://broadcast.tvchosun.com/broadcast/program/3/C201900033/bbs/8663/C201900033_7/{}.cstv?search_text=';
-const htmlToText = compile();
 
 let $saved;
 
@@ -60,7 +58,7 @@ const config = {
 
         const title = $('#viewTitle').contents().eq(0).text().trim();
         const date = $('.bbs_detail .w_info .date').text().replace(/\./g, '-');
-        const body = htmlToText($('#content').html());
+        const body = $('#content').html();
 
         return { title, date, body };
     },

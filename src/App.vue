@@ -12,7 +12,7 @@
   <div id="divInfo">
     <div class="animated swing"><h1>TV 동네 탐방</h1></div>
     <div class="desc">
-      <p>TV 방송 맛집, 멋집 지도로 찾기 (<span id="spanUpdated">2023-05-07</span>)</p>
+      <p>TV 방송 맛집, 멋집 지도로 찾기 (<span id="spanUpdated">2023-05-15</span>)</p>
     </div>
     <div class="finePrint">
       <p>이 페이지는 개인적인 TV 방송 시청자로서
@@ -96,17 +96,19 @@ export default {
       maxWidth: 310,
     }).setContent(marker => {
       const { dataset, item, address, locations } = marker.__data;
-      let body = item.body;
+
+      let body = item.body
+                .replace(item.title, '').trim()
+                .replace(/</g, '&lt;')
+                .replace(/\n/g, '<br>')
+                .replace(/(https?:\/\/[\w가-힣/%_\-+=?&.#@]+)/g, '<a href="$1" target="_blank">$1</a>');
+
       const addresses = findAddresses(body);
       addresses.forEach(a => {
         if (locations[a] && a !== address)
           body = body.replace(a, `<a href="#move" data-loc="${locations[a].lat},${locations[a].lng}">${a}</a>`);
       });
-
-      body = body
-        .replace(item.title, '').trim()
-        .replace(/\n/g, '<br>')
-        .replace(address, `<span class="highlight">${address}</span>`);
+      body = body.replace(address, `<span class="highlight">${address}</span>`);
 
       return `
         <div><h3 class="h5">${datasets[dataset].name} ${formatDate(item.date)}</h3></div>

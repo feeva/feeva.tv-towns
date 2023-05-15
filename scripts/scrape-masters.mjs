@@ -5,7 +5,6 @@
  */
 
 import { Command } from 'commander';
-import { compile } from 'html-to-text';
 import fetch from 'node-fetch';
 
 import { scrape } from './scrape.mjs';
@@ -25,7 +24,6 @@ async function fetchGet(url) {
 
 const START_URL = 'http://api.board.sbs.co.kr/bbs/V2.0/basic/board/lists?limit=1&action_type=json&board_code=lifemaster_bd01&offset=0';
 const URL_PATTERN = 'http://api.board.sbs.co.kr/bbs/V2.0/basic/board/detail/{}?action_type=json&board_code=lifemaster_bd01';
-const htmlToText = compile();
 
 let savedItem;
 
@@ -56,7 +54,7 @@ const config = {
         savedItem = result;
         const title = result.TITLE;
         const date = result.REG_DATE;
-        const body = htmlToText(result.CONTENT);
+        const body = result.CONTENT;
 
         return { title, date, body };
     },
