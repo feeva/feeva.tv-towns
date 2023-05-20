@@ -1,6 +1,31 @@
 <template>
   <div ref="map" id="map"></div>
 
+  <div id="filter-form">
+    <div class="row">
+      <div class="col">
+        <input
+          class="form-control"
+          type="text"
+          placeholder="방송 주소 검색"
+          :value="addressSearchText"
+          @input="addressSearchText = $event.target.value.trim()"
+        >
+        <button v-if="addressSearchText" type="button" class="btn-close" @click="addressSearchText = ''"></button>
+      </div>
+      <div class="col">
+        <input
+          class="form-control"
+          type="text"
+          placeholder="방송 내용 검색"
+          :value="contentSearchText"
+          @input="contentSearchText = $event.target.value.trim()"
+        >
+        <button v-if="contentSearchText" type="button" class="btn-close" @click="contentSearchText = ''"></button>
+      </div>
+    </div>
+  </div>
+
   <div v-if="loading" id="page-loader" class="page-loader">
     <div class="spinner-border text-primary" role="status">
       <span class="visually-hidden">Loading...</span>
@@ -28,7 +53,7 @@
 import 'leaflet';
 import 'leaflet.markercluster';
 
-import { formatDate } from './utils';
+import { formatDate, debounce } from './utils';
 import { findAddresses } from '../scripts/functions.mjs';
 
 let currLocation;
@@ -37,11 +62,22 @@ export default {
   data() {
     return {
       loading: false,
+      addressSearchText: '',
+      contentSearchText: '',
     };
   },
 
+  watch: {
+    addressSearchText() {
+      this.debouncedShowMarkers();
+    },
+    contentSearchText() {
+      this.debouncedShowMarkers();
+    },
+  },
+
   created() {
-    window.navigator.geolocation.getCurrentPosition(pos => {
+    window.navigator.geolocation?.getCurrentPosition(pos => {
       currLocation = [pos.coords.latitude, pos.coords.longitude];
       if (this.map) {
         this.map.setView(currLocation, 15);
@@ -56,8 +92,7 @@ export default {
       document.querySelectorAll('#divInfoTouch, #divInfo').forEach(el => el.style.display = 'none');
     }
     document.querySelectorAll('#divInfoTouch, #divInfo').forEach(el => {
-      el.addEventListener('mousedown', hide);
-      el.addEventListener('touchdown', hide);
+      el.addEventListener('click', hide);
     });
 
     // initialize map
@@ -68,7 +103,7 @@ export default {
       + ' | <a href="http://www.molit.go.kr/" target="_blank">국토교통부</a>';
     const L = window.L;
 
-    this.map = L.map('map', {
+    this.map = L.map(this.$refs.map, {
       maxZoom: 18,
       minZoom: 7,
       maxBounds: [[31, 122], [40, 134]],
@@ -85,33 +120,33 @@ export default {
     }
 
     // initialize markers
-    const datasets = {
+    this.datasets = {
       masters: { name: '생활의 달인', icon: { html: '달인', iconSize: [36, 20], popupAnchor: [0, -10] }, },
       meals: { name: '백반기행', icon: { html: '백반', iconSize: [36, 20], popupAnchor: [0, -10] }, },
       today: { name: '생방송 투데이', icon: { html: '투데이', iconSize: [48, 20], popupAnchor: [0, -10] }, },
       tonight: { name: '생방송 오늘 저녁', icon: { html: '저녁', iconSize: [36, 20], popupAnchor: [0, -10] }, },
     };
 
-    const popup = L.popup({
+    this.popup = L.popup({
       maxWidth: 310,
     }).setContent(marker => {
       const { dataset, item, address, locations } = marker.__data;
 
       let body = item.body
-                .replace(item.title, '').trim()
-                .replace(/</g, '&lt;')
-                .replace(/\n/g, '<br>')
+                .replaceAll(item.title, '').trim()
+                .replaceAll('<', '&lt;')
+                .replaceAll('\n', '<br>')
+                .replaceAll(address, `<span class="highlight">${address}</span>`)
                 .replace(/(https?:\/\/[\w가-힣/%_\-+=?&.#@]+)/g, '<a href="$1" target="_blank">$1</a>');
 
       const addresses = findAddresses(body);
       addresses.forEach(a => {
         if (locations[a] && a !== address)
-          body = body.replace(a, `<a href="#move" data-loc="${locations[a].lat},${locations[a].lng}">${a}</a>`);
+          body = body.replaceAll(a, `<a href="#move" data-loc="${locations[a].lat},${locations[a].lng}">${a}</a>`);
       });
-      body = body.replace(address, `<span class="highlight">${address}</span>`);
 
       return `
-        <div><h3 class="h5">${datasets[dataset].name} ${formatDate(item.date)}</h3></div>
+        <div><h3 class="h5">${this.datasets[dataset].name} ${formatDate(item.date)}</h3></div>
         <div class="popup__body">
           <p><strong>${item.title}</strong></p>
           ${body}
@@ -123,21 +158,12 @@ export default {
       if (e.target.matches('a[data-loc]')) {
         e.preventDefault();
         const latLng = e.target.dataset.loc.split(',');
-        this.map.flyTo(latLng);
+        this.map.flyTo(latLng, Math.max(16, this.map.getZoom()));
       }
     });
 
-    function scrollToHighlight() {
-      setTimeout(() => {
-        const el = document.querySelector('.highlight');
-        if (el) {
-          el.scrollIntoView({ block: 'center' });
-        }
-      });
-    }
-
-    const markers = L.markerClusterGroup({ maxClusterRadius: zoom => -7 * zoom + 156 });
-    const now = Date.now()
+    this.markers = L.markerClusterGroup({ maxClusterRadius: zoom => -7 * zoom + 156 });
+    this.map.addLayer(this.markers);
 
     // load data
     this.loading = true;
@@ -145,6 +171,9 @@ export default {
     const posts = arr[0].default;
     const locations = arr[1].default;
     this.loading = false;
+
+    const now = Date.now()
+    this.markerArr = [];
 
     Object.keys(posts).forEach(key => {
       const item = posts[key];
@@ -157,18 +186,49 @@ export default {
         const loc = locations[address];
         if (!loc) return;
 
-        const marker = L.marker([loc.lat, loc.lng], {
-          icon: L.divIcon({ ...datasets[datasetId].icon, className: `badge badge-${datasetId} year-${yearDiff}`}),
-          title: `${date} ${datasets[datasetId].name}, ${address}`,
+        const marker = window.L.marker([loc.lat, loc.lng], {
+          icon: window.L.divIcon({ ...this.datasets[datasetId].icon, className: `badge badge-${datasetId} year-${yearDiff}`}),
+          title: `${date} ${this.datasets[datasetId].name}, ${address}`,
           opacity: 7 / (yearDiff + 7),
         });
         marker.__data = { dataset: datasetId, item, address, locations };
-        marker.bindPopup(popup).on('popupopen', scrollToHighlight)
-        markers.addLayer(marker);
+        marker.bindPopup(this.popup).on('popupopen', this.scrollToHighlight)
+        this.markerArr.push(marker);
       });
     });
-    this.map.addLayer(markers);
+    
+    this.debouncedShowMarkers = debounce(this.showMarkers);
+    this.showMarkers();
+  },
 
+  methods: {
+    scrollToHighlight() {
+      setTimeout(() => {
+        const el = document.querySelector('.highlight');
+        if (el) {
+          el.scrollIntoView({ block: 'center' });
+        }
+      });
+    },
+
+    showMarkers() {
+      const addressSearch = this.addressSearchText.toLowerCase();
+      const contentSearch = this.contentSearchText.toLowerCase();
+
+      const filtered = addressSearch || contentSearch ? this.markerArr.filter(m => {
+        const { item, address } = m.__data;
+        return (!addressSearch || address.toLowerCase().includes(addressSearch))
+          && (
+            !contentSearch
+            || item.title.toLowerCase().includes(contentSearch)
+            || item.body.toLowerCase().includes(contentSearch)
+          )
+
+      }) : this.markerArr;
+
+      this.markers.clearLayers();
+      this.markers.addLayers(filtered);
+    }
   },
 }
 </script>
@@ -218,6 +278,25 @@ export default {
   z-index: 900;
 }
 #page-loader .spinner-border { width: 4rem; height: 4rem; border-width: .4em; }
+
+#filter-form {
+  position: fixed;
+  top: .5rem;
+  left: .5rem;
+  z-index: 900;
+  width: 340px;
+  max-width: 90%;
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+#filter-form .col { position: relative; }
+.btn-close {
+  position: absolute;
+  top: .5rem;
+  right: 1rem;
+}
 
 #divInfo {
     position: absolute; left: 0; top: 0; right: 0; bottom: 0;

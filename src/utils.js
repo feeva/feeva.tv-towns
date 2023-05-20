@@ -16,5 +16,15 @@ function formatDate(date, opt) {
   
     return d.toLocaleDateString(undefined, opt || { dateStyle: 'medium' });
 };
+
+function debounce(fn) {
+    let timout;
+
+    return function(...args) {
+        const context = this;
+        clearTimeout(timout);
+        timout = setTimeout(() => fn.apply(context, args), 400);
+    }
+}
   
-export { formatDate };
+export { formatDate , debounce };
