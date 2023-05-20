@@ -20,6 +20,7 @@ async function scrape(config) {
     // load existing data
     const DATA_FILE = config.filename ?? new URL(import.meta.url + '/../../src/data/posts.json');
     let posts = {};
+    let changed = false;
 
     if (fs.existsSync(DATA_FILE)) {
         const data = fs.readFileSync(DATA_FILE, 'utf8');
@@ -37,7 +38,6 @@ async function scrape(config) {
 
     let index = 0;
     let itemKey;
-    let changed = true;
 
     console.log('Starting scraping...');
 
