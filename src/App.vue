@@ -37,13 +37,13 @@
   <div id="divInfo">
     <div class="animated swing"><h1>TV 동네 탐방</h1></div>
     <div class="desc">
-      <p>최근 5년간 TV 방송 맛집, 멋집 찾기 (<span id="spanUpdated">2023-05-20</span>)</p>
+      <p>최근 5년간 TV 방송 맛집, 멋집 찾기 (<span id="spanUpdated">2024-05-02</span>)</p>
     </div>
     <div class="finePrint">
       <p>이 페이지는 개인적인 TV 방송 시청자로서
           제작한 웹페이지이며 사용된 데이터는
           각각의 원 소유주에게 원래의 권한이 있습니다.</p>
-      <p style="text-align: center;">(c) 2017-2023, <a href="http://feeva.github.io/" target="_blank">이동련</a></p>
+      <p style="text-align: center;">(c) 2017-2024, <a href="http://feeva.github.io/" target="_blank">이동련</a></p>
     </div>
   </div>
 
