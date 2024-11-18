@@ -58,7 +58,7 @@ const config = {
 
         const title = $('#viewTitle').contents().eq(0).text().trim();
         const date = $('.bbs_detail .w_info .date').text().replace(/\./g, '-');
-        const body = $('#content').html();
+        const body = $('#content').html().replace(/\ufeff/gm, '');
 
         return { title, date, body };
     },

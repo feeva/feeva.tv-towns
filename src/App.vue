@@ -37,7 +37,7 @@
   <div id="divInfo">
     <div class="animated swing"><h1>TV 동네 탐방</h1></div>
     <div class="desc">
-      <p>최근 5년간 TV 방송 맛집, 멋집 찾기 (<span id="spanUpdated">2024-05-02</span>)</p>
+      <p>최근 5년간 TV 방송 맛집, 멋집 찾기 (<span id="spanUpdated">2024-11-18</span>)</p>
     </div>
     <div class="finePrint">
       <p>이 페이지는 개인적인 TV 방송 시청자로서
@@ -124,7 +124,7 @@ export default {
       masters: { name: '생활의 달인', icon: { html: '달인', iconSize: [36, 20], popupAnchor: [0, -10] }, },
       meals: { name: '백반기행', icon: { html: '백반', iconSize: [36, 20], popupAnchor: [0, -10] }, },
       today: { name: '생방송 투데이', icon: { html: '투데이', iconSize: [48, 20], popupAnchor: [0, -10] }, },
-      tonight: { name: '생방송 오늘 저녁', icon: { html: '저녁', iconSize: [36, 20], popupAnchor: [0, -10] }, },
+      tonight: { name: '오늘N', icon: { html: '저녁', iconSize: [36, 20], popupAnchor: [0, -10] }, },
     };
 
     this.popup = L.popup({

@@ -13,12 +13,12 @@ import { scrape } from './scrape.mjs';
 const program = new Command();
 
 program.usage('[options] [filename]')
-    .description('Scrapes the message board of TV show "생방송 투데이"')
+    .description('Scrapes the message board of TV show "오늘N"')
     .option('-f --force', 'Force scraping all items')
     .parse()
     ;
 
-const koTextDecoder = new TextDecoder('euc-kr');
+const koTextDecoder = new TextDecoder('utf-8');
 async function fetchGet(url) {
     let resp;
     try {
