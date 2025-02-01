@@ -37,7 +37,7 @@
   <div id="divInfo">
     <div class="animated swing"><h1>TV 동네 탐방</h1></div>
     <div class="desc">
-      <p>최근 5년간 TV 방송 맛집, 멋집 찾기 (<span id="spanUpdated">2024-11-18</span>)</p>
+      <p>최근 5년간 TV 방송 맛집, 멋집 찾기 (<span id="spanUpdated">2025-02-01</span>)</p>
     </div>
     <div class="finePrint">
       <p>이 페이지는 개인적인 TV 방송 시청자로서

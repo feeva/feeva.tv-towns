@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * This script scrapes the message board of the SBS TV show 'Live Today'
  */
