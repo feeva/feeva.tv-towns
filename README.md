@@ -23,6 +23,7 @@ node scripts/scrape-today.mjs
 node scripts/scrape-masters.mjs
 node scripts/scrape-meals.mjs
 node scripts/scrape-tonight.mjs
+node scripts/scrape-real.mjs
 ```
 
 Now build locations data for the scraped data. You need to provide Kakao API key to geocode the addresses.
