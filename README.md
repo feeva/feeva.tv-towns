@@ -15,6 +15,7 @@ The data is scraped from four different TV shows and can be scraped using JavaSc
 - SBS 생활의 달인 - `scrape-masters.mjs`
 - TV Chosun 백반 기행 - `scrape-meals.mjs`
 - MBC 오늘N - `scrape-tonight.mjs`
+- KBS 생생정보 - `scrape-real.mjs`
 
 Run the scripts using Node.js to get the data in JSON format. This will create `posts.json` file in the `src/data` folder.
 
@@ -23,6 +24,7 @@ node scripts/scrape-today.mjs
 node scripts/scrape-masters.mjs
 node scripts/scrape-meals.mjs
 node scripts/scrape-tonight.mjs
+node scripts/scrape-real.mjs
 ```
 
 Now build locations data for the scraped data. You need to provide Kakao API key to geocode the addresses.

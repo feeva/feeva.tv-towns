@@ -97,7 +97,8 @@ export default {
 
     // initialize map
     const TILE_URLS = {
-      BASE: 'https://xdworld.vworld.kr/2d/Base/service/{z}/{x}/{y}.png',
+      // BASE: 'https://xdworld.vworld.kr/2d/Base/service/{z}/{x}/{y}.png',
+      BASE: 'https://cdn.vworld.kr/2d/Base/service/{z}/{x}/{y}.png',
     };
     const VWORLD_ATTRIBUTION = '&copy; <a href="http://www.vworld.kr/po_main.do" target="_blank">공간정보 오픈플랫폼</a>'
       + ' | <a href="http://www.molit.go.kr/" target="_blank">국토교통부</a>';
@@ -125,6 +126,7 @@ export default {
       meals: { name: '백반기행', icon: { html: '백반', iconSize: [36, 20], popupAnchor: [0, -10] }, },
       today: { name: '생방송 투데이', icon: { html: '투데이', iconSize: [48, 20], popupAnchor: [0, -10] }, },
       tonight: { name: '오늘N', icon: { html: '저녁', iconSize: [36, 20], popupAnchor: [0, -10] }, },
+      real: { name: '생생정보', icon: { html: '생생', iconSize: [36, 20], popupAnchor: [0, -10] }, },
     };
 
     this.popup = L.popup({
@@ -252,8 +254,9 @@ export default {
 .leaflet-marker-icon.badge { padding: 0.35em; font-size: 12px; font-weight: normal; }
 .leaflet-marker-icon.badge-masters { background-color: #0086cd; }
 .leaflet-marker-icon.badge-meals { background-color: #f54643; }
-.leaflet-marker-icon.badge-today { background-color: #0086cd; }
+.leaflet-marker-icon.badge-today { background-color: #669966; }
 .leaflet-marker-icon.badge-tonight { background-color: #040707; }
+.leaflet-marker-icon.badge-real { background-color: #ff77aa; }
 
 .leaflet-marker-icon[class^="year-"] { filter: grayscale(100%); }
 .leaflet-marker-icon.year-0 { filter: grayscale(0); }
