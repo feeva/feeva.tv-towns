@@ -33,7 +33,7 @@ async function geocode(address) {
     if (obj?.documents?.length) {
         return obj.documents[0];
     } else {
-        console.log('No results for ' + address);
+        console.log('No results for ' + address, obj);
     }
 }
 
